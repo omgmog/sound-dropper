@@ -8,14 +8,19 @@
                 overflow: hidden;
                 overflow-y: scroll;
             }
+            .select {
+                margin: auto;
+                max-width: 300px;
+            }
         </style>
         <script src="assets/howler.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     </head>
     <body>
-        <div class="container">
-            <div id="app">
-                <nav-bar></nav-bar>
+        <div id="app">
+            <nav-bar></nav-bar>
+            
+            <div class="container">
                 <drop-list></drop-list>
                 <!-- <a href="drop.html">Add a drop</a> -->
 
@@ -32,60 +37,65 @@
             
         </div>
         <template id="drop-list">
-            <ol class="drop-list">
-            <li v-for="drop in drops">
-                <!--
-                    drop: {{drop.path}}
-                    date: {{drop.date}}
-                    name: {{drop.name}}
-                -->
-
-                {{drop.name}} <br />
-
-                <sound-player v-bind:src="'/drops/' + drop.path"></sound-player>
-            </li>
-            </ol>
+            <div class="menu">
+                <ol class="drop-list menu-list">
+                    <li v-for="drop in drops" class="box">
+                        <!--
+                            drop: {{drop.path}}
+                            date: {{drop.date}}
+                            name: {{drop.name}}
+                        -->
+                        <sound-player v-bind:drop="drop"></sound-player>
+                    </li>
+                </ol>
+            </div>
         </template>
-        <template id="app-login">
-
-            <div>
+        <template id="input-select">
+            <div class="select">
                 <select v-model="device">
                     <option v-for="device in devices" v-bind:value="device.deviceId">
                         {{device.label}}
                     </option>
                 </select>
-                <p v-if="submitted">
-                    Hello {{ name }}
-                    <button @click.prevent="submitted = false">change</button>
-                </p>
-                <form v-else @submit.prevent="submitted = true">
-                    <input v-model="name" type="text" placeholder="Your name" />
-                    <button class="button is-light">set name</button>
-                </form>
             </div>
+        </template>
+        <template id="app-login">
+            <div v-if="submitted" class=" is-flex is-justify-content-flex-end is-align-items-center">
+                <p>
+                    Hello {{ name }}
+                </p>
+                <button @click.prevent="submitted = false" class="button is-dark ml-2">Not {{ name }}?</button>
+            </div>
+            <form v-else @submit.prevent="submitted = true" class="m-0 is-flex is-justify-content-flex-end is-align-items-center">
+                <input v-model="name" type="text" placeholder="Your name" class="input"/>
+                <button class="button is-dark ml-2">set name</button>
+            </form>
         </template>
         
         <template id="drop-adder">
             <div id="controls">
-                <button v-if="!isRecording" v-on:click="startRecording">Drop</button>
+                <button v-if="!isRecording" v-on:click="startRecording" class="button is-primary">Drop</button>
+                <button v-if="isRecording" v-on:click="stopRecording" class="button is-primary">Stop</button>
+                <button v-if="isRecording" v-on:click="cancelRecording" class="button is-danger">Cancel</button>
                 <span v-if="isRecording">🔴</span>
-                <button v-if="isRecording" v-on:click="stopRecording">Stop</button>
-                <button v-if="isRecording" v-on:click="cancelRecording">Cancel</button>
             </div>
         </template>
 
         <template id="nav-bar">
-            <nav class="navbar" role="navigation" aria-label="main navigation">
-                <div class="navbar-start"><div class="navbar-brand">{{title}}</div></div>
-                <div class="navbar-end"><app-login></app-login></div>
-                </nav>
+            <nav class="navbar is-black" role="navigation" aria-label="main navigation">
+                <div class="container">
+                    <div class="navbar-start"><app-login></app-login></div>
+                    <h1 class="navbar-brand is-size-3">{{title}}</h1>
+                    <div class="navbar-end"><input-select></input-select></div>
+                </div>
+            </nav>
         </template>
 
         <template id="sound-player">
-            <div>
-                {{src}} ({{duration}}) 
-                <button v-on:click="play" v-if="!isPlaying">Play</button>
-                <button v-on:click="stop" v-if="isPlaying">Stop</button> 
+            <div class="is-flex is-flex-direction-row">
+                <span class="is-flex-grow-1"><strong>{{ drop.name }}</strong> {{drop.date}} ({{duration}}) </span>
+                <button v-on:click="play" v-if="!isPlaying" class="button is-dark is-align-self-flex-end">Play</button>
+                <button v-on:click="stop" v-if="isPlaying" class="button is-dark is-align-self-flex-end">Stop</button> 
             </div>
         </template>
 
@@ -186,40 +196,44 @@
                 }),
                 template: '#nav-bar'
             })
-
-            Vue.component('app-login', {
+            Vue.component('input-select', {
                 data: () => ({
-                    submitted: false,
-                    name: '',
+                    
                     devices: [],
                     device: ''
                 }),
                 async mounted() {
-                    if (localStorage.name) {
-                        this.name = localStorage.getItem('name');
-                        this.submitted = !! this.name
-                    }
-
                     if (localStorage.device) {
                         this.device = localStorage.getItem('device');
                     }
 
-                
                     devices = await navigator.mediaDevices.enumerateDevices()
-                    
+
                     this.devices = devices.filter(device=>device.kind==='audioinput');
 
-                    
+                },
+                watch: {
+                    device(dev) {
+                        localStorage.setItem('device', dev);
+                    }
+                },
+                template: '#input-select'
 
-
-                    
+            });
+            Vue.component('app-login', {
+                data: () => ({
+                    submitted: false,
+                    name: ''
+                }),
+                mounted() {
+                    if (localStorage.name) {
+                        this.name = localStorage.getItem('name');
+                        this.submitted = !! this.name
+                    }
                 },
                 watch: {
                     name(newName) {
                         localStorage.setItem('name', newName);
-                    },
-                    device(dev) {
-                        localStorage.setItem('device', dev);
                     }
                 },
                 template: '#app-login'
@@ -260,20 +274,23 @@
 
 
             Vue.component('sound-player', {
-                props: ['src'],
+                props: ['drop'],
                 data: () => {
                     return {
                         player: null,
                         duration: 0,
-                        isPlaying: false
+                        isPlaying: false,
+                        date: null
                     }
                 },
                  
                 mounted() {
                     const vm = this;
                     const player = this.player =  new Howl({
-                        src: [this.src]
+                        src: [`/drops/${vm.drop.path}`]
                     });
+
+                    this.date = vm.drop.path.split('-')[0];
 
                     this.player.on('play', function(){
                         vm.duration = player.duration();
@@ -289,7 +306,13 @@
 
                 methods: {
                     play () {
-                        this.player.play()
+                        if (window.currentPlaying != this.player) {
+                            if (window.currentPlaying) {
+                                window.currentPlaying.stop();
+                            }
+                            window.currentPlaying = this.player;
+                            this.player.play()
+                        }
                     },
                     stop () {
                         this.player.stop()
