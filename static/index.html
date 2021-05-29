@@ -281,6 +281,9 @@
                     });  
                     this.player.on('stop', function(){
                         vm.isPlaying = false
+                    }); 
+                    this.player.on('end', function(){
+                        vm.isPlaying = false
                     });                   
                 },
 
