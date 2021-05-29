@@ -9,9 +9,12 @@
         <link rel="stylesheet" href="assets/bulma.min.css" />
         <style>
             .drop-list {
-                max-height: 80vh;
+                height: 100vh;
+                max-height: calc(100vh - 175px);
                 overflow: hidden;
                 overflow-y: scroll;
+                display: flex;
+                flex-direction: column-reverse;
             }
             .select {
                 margin: auto;
@@ -27,8 +30,6 @@
             
             <div class="container">
                 <drop-list></drop-list>
-                <!-- <a href="drop.html">Add a drop</a> -->
-
                 <drop-adder></drop-adder>
             </div>
             <!-- <div class="panel is-danger">
@@ -42,8 +43,8 @@
             
         </div>
         <template id="drop-list">
-            <div class="menu">
-                <ol class="drop-list menu-list">
+            <div class="drop-list menu">
+                <ol class="menu-list">
                     <li v-for="drop in drops" class="box">
                         <!--
                             drop: {{drop.path}}
