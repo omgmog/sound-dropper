@@ -1,0 +1,76 @@
+<html>
+    <head>
+
+        <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    </head>
+    <body>
+        <h1>It works!</h1>
+
+        <form action="/drop" method="post" enctype="multipart/form-data" >
+            <input type="text" name="username" placeholder="username" />
+            <input type="file" name="file" />
+        </form>
+
+        <div id="app">
+            <app-login />
+        </div>
+
+
+        <ol id="drops"></ol>
+
+        <script>
+
+            // list of audio
+            const ol = document.querySelector('#drops')
+
+            fetch('/drops')
+                .then(res => res.json())
+                .then(drops => {
+                    for(const drop of drops) {
+                        const li = document.createElement('li')
+                        li.innerText = JSON.stringify(drop)
+                        ol.append(li)
+                    }
+                })
+
+
+
+            Vue.component('app-login', {
+                data: function () {
+                    return {
+                        submitted: false,
+                        name: ''
+                    }
+                },
+                mounted() {
+                    if (localStorage.name) {
+                        this.name = localStorage.getItem('name');
+                        this.submitted = !! this.name
+                    }
+                },
+                watch: {
+                    name(newName) {
+                        localStorage.setItem('name', newName);
+                    }
+                },
+                template: `<div>
+                        <p v-if="submitted">
+                            Hello {{ name }}
+                            <button @click.prevent="submitted = false">change</button>
+                        </p>
+                        <form v-else @submit.prevent="submitted = true">
+                            <input v-model="name" type="text" placeholder="Your name" />
+                            <button>set name</button>
+                        </form>
+                    </div>`
+            })
+
+            new Vue({ el: '#app' })
+
+
+
+
+
+        </script>
+    </body>
+</html>
