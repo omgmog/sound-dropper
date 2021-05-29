@@ -1,6 +1,8 @@
 const express = require('express');
 const multer = require('multer');
 const slugify = require('slugify');
+const fs = require('fs/promises');
+const path = require('path');
 
 const upload = multer({
     storage: multer.diskStorage({
@@ -34,14 +36,25 @@ app.post('/drop', upload.single('file'), (req, res) => {
 
 
 app.get('/drops/:file', (req, res) => {
-    res.send(`Requested file "${req.params.file}"`);
+    const full = path.join(__dirname, 'drops', req.params.file);
+    res.sendFile(full)
 })
 
-app.get('/drops', (req, res) => {
-    res.send([
-        {by: 'max', length: 200},
-        {by: 'ben', length: 120},
-    ])
+app.get('/drops', async (req, res) => {
+    const files = await fs.readdir('./drops')
+
+    const json = files.map(file => ({
+        path: file,
+        date: (new Date(file.split('-')[0]*1)).toLocaleDateString(),
+        name: file.split('-')[1].split('.')[0]
+        // 
+    }))
+
+    res.send(json)
+
+    // console.log(dir)
+
+
 })
 
 

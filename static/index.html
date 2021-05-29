@@ -4,36 +4,22 @@
         <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     </head>
     <body>
-        <h1>It works!</h1>
-
-        <form action="/drop" method="post" enctype="multipart/form-data" >
-            <input type="text" name="username" placeholder="username" />
-            <input type="file" name="file" />
-        </form>
+   
+        <hr />
 
         <div id="app">
-            <app-login />
+            <app-login></app-login>
+            <drop-list></drop-list>
         </div>
-
-
-        <ol id="drops"></ol>
-
+        <form action="/drop" method="post" enctype="multipart/form-data" >
+            <h2>This is totally just for debugging</h2>
+            <input type="text" name="username" placeholder="username" />
+            <input type="file" name="file" />
+            <input type="submit" />
+        </form>
+        
+        
         <script>
-
-            // list of audio
-            const ol = document.querySelector('#drops')
-
-            fetch('/drops')
-                .then(res => res.json())
-                .then(drops => {
-                    for(const drop of drops) {
-                        const li = document.createElement('li')
-                        li.innerText = JSON.stringify(drop)
-                        ol.append(li)
-                    }
-                })
-
-
 
             Vue.component('app-login', {
                 data: function () {
@@ -62,6 +48,35 @@
                             <input v-model="name" type="text" placeholder="Your name" />
                             <button>set name</button>
                         </form>
+                    </div>`
+            })
+
+
+            Vue.component('drop-list', {
+                data: function () {
+                    return {
+                        drops: []
+                    }
+                },
+                mounted() {
+                    fetch('/drops')
+                        .then(res => res.json())
+                        .then((drops) => this.drops = drops)
+                },
+                template: `<div>
+
+                    Drop list...
+
+                    <ol>
+                    <li v-for="drop in drops">
+                        drop: {{drop.path}}<br />
+                        date: {{drop.date}}<br />
+                        name: {{drop.name}}<br />
+                        
+                        <audio v-bind:src="'/drops/' + drop.path" controls />
+                    </li>
+                    </ol>
+                        
                     </div>`
             })
 
