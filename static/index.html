@@ -1,54 +1,228 @@
 <html>
     <head>
-
+        <title>Sound Dropper</title>
+        <link rel="stylesheet" href="assets/bulma.min.css" />
+        <style>
+            .drop-list {
+                max-height: 80vh;
+                overflow: hidden;
+                overflow-y: scroll;
+            }
+        </style>
+        <script src="assets/howler.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     </head>
     <body>
-   
-        <hr />
+        <div class="container">
+            <div id="app">
+                <nav-bar></nav-bar>
+                <drop-list></drop-list>
+                <!-- <a href="drop.html">Add a drop</a> -->
 
-        <div id="app">
-            <app-login></app-login>
-            <drop-list></drop-list>
+                <drop-adder></drop-adder>
+            </div>
+            <!-- <div class="panel is-danger">
+                <h2 class="panel-heading">This is totally just for debugging</h2>
+                <form action="/drop" method="post" enctype="multipart/form-data" class="panel-block">
+                    <input type="text" name="username" placeholder="username" />
+                    <input type="file" name="file" />
+                    <input type="submit" />
+                </form>
+            </div> -->
+            
         </div>
-        <form action="/drop" method="post" enctype="multipart/form-data" >
-            <h2>This is totally just for debugging</h2>
-            <input type="text" name="username" placeholder="username" />
-            <input type="file" name="file" />
-            <input type="submit" />
-        </form>
+        <template id="drop-list">
+            <ol class="drop-list">
+            <li v-for="drop in drops">
+                <!--
+                    drop: {{drop.path}}
+                    date: {{drop.date}}
+                    name: {{drop.name}}
+                -->
+
+                {{drop.name}} <br />
+
+                <sound-player v-bind:src="'/drops/' + drop.path"></sound-player>
+            </li>
+            </ol>
+        </template>
+        <template id="app-login">
+
+            <div>
+                <select v-model="device">
+                    <option v-for="device in devices" v-bind:value="device.deviceId">
+                        {{device.label}}
+                    </option>
+                </select>
+                <p v-if="submitted">
+                    Hello {{ name }}
+                    <button @click.prevent="submitted = false">change</button>
+                </p>
+                <form v-else @submit.prevent="submitted = true">
+                    <input v-model="name" type="text" placeholder="Your name" />
+                    <button class="button is-light">set name</button>
+                </form>
+            </div>
+        </template>
         
-        
-        <script>
+        <template id="drop-adder">
+            <div id="controls">
+                <button v-if="!isRecording" v-on:click="startRecording">Drop</button>
+                <span v-if="isRecording">🔴</span>
+                <button v-if="isRecording" v-on:click="stopRecording">Stop</button>
+                <button v-if="isRecording" v-on:click="cancelRecording">Cancel</button>
+            </div>
+        </template>
+
+        <template id="nav-bar">
+            <nav class="navbar" role="navigation" aria-label="main navigation">
+                <div class="navbar-start"><div class="navbar-brand">{{title}}</div></div>
+                <div class="navbar-end"><app-login></app-login></div>
+                </nav>
+        </template>
+
+        <template id="sound-player">
+            <div>
+                {{src}} ({{duration}}) 
+                <button v-on:click="play" v-if="!isPlaying">Play</button>
+                <button v-on:click="stop" v-if="isPlaying">Stop</button> 
+            </div>
+        </template>
+
+        <script src="./dropper.js"></script>
+        <script>            
+            Vue.component('drop-adder', {
+                data: () => ({
+                    isRecording: false,
+                    recordingData: [],
+                    audio: null,
+                    recorder: null
+                }),
+
+                template: '#drop-adder',
+
+                methods: {
+                    async startRecording(event) {
+                        this.audio = this.audio || new AudioContext();
+                        let selectedDevice = localStorage.getItem('device') || 'default';
+                        let constraints = {audio: {deviceId: selectedDevice}};
+
+                        
+                        let stream = await navigator.mediaDevices.getUserMedia(constraints).catch((err) => console.log(err));
+                        let target = this.audio.createGain();
+                        let source = this.audio.createMediaStreamSource(stream);
+
+                        let analyser = this.audio.createAnalyser();
+                        analyser.fftSize = 256;
+                        
+                        this.data = new Uint8Array(analyser.frequencyBinCount);
+
+                        source.connect(analyser);
+                        source.connect(target);
+
+                        
+                        this.audio.resume();
+
+                        this.recorder = new MediaRecorder(stream);
+                        this.recorder.start();
+                        this.recorder.ondataavailable = (e) => {
+                            this.recordingData.push(e.data);
+                        }
+
+                        this.isRecording = true
+                    },
+                    stopRecording: function(event) {
+                        this.audio.suspend();
+                        this.recorder.stop();
+
+                        this.recorder.onstop =  (e) => {
+                            const blob = new Blob(this.recordingData, {type: 'audio/ogg; codecs=opus'});
+
+                            const data = new FormData();
+                            // TODO username.value
+                            data.append('username', localStorage.getItem('name'));
+                            data.append('file', new File([blob], `upload.ogg`, {type:blob.type}));
+
+
+                            console.log('data');
+
+                            fetch('/drop', {
+                                method: 'POST',
+                                mode: 'cors',
+                                body: data
+                            })
+                            .then(result => {
+                                console.log(result);
+                                document.location.replace('/')
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                            });
+
+                            // Cleanup
+                            this.recordingData = [];
+
+                            
+                        }
+
+                        this.isRecording = false
+                    },
+                    cancelRecording: function(event) {
+                        this.audio.suspend();
+                        this.recorder.onstop =  (e) => {
+                            console.log('Stopped recording')
+                        }
+                        this.recorder.stop();
+
+                        this.recordingData = [];
+                        this.isRecording = false
+                    }
+                }
+            })
+
+            Vue.component('nav-bar', {
+                data: () => ({
+                    title: 'Dropper'
+                }),
+                template: '#nav-bar'
+            })
 
             Vue.component('app-login', {
-                data: function () {
-                    return {
-                        submitted: false,
-                        name: ''
-                    }
-                },
-                mounted() {
+                data: () => ({
+                    submitted: false,
+                    name: '',
+                    devices: [],
+                    device: ''
+                }),
+                async mounted() {
                     if (localStorage.name) {
                         this.name = localStorage.getItem('name');
                         this.submitted = !! this.name
                     }
+
+                    if (localStorage.device) {
+                        this.device = localStorage.getItem('device');
+                    }
+
+                
+                    devices = await navigator.mediaDevices.enumerateDevices()
+                    
+                    this.devices = devices.filter(device=>device.kind==='audioinput');
+
+                    
+
+
+                    
                 },
                 watch: {
                     name(newName) {
                         localStorage.setItem('name', newName);
+                    },
+                    device(dev) {
+                        localStorage.setItem('device', dev);
                     }
                 },
-                template: `<div>
-                        <p v-if="submitted">
-                            Hello {{ name }}
-                            <button @click.prevent="submitted = false">change</button>
-                        </p>
-                        <form v-else @submit.prevent="submitted = true">
-                            <input v-model="name" type="text" placeholder="Your name" />
-                            <button>set name</button>
-                        </form>
-                    </div>`
+                template: '#app-login'
             })
 
 
@@ -62,29 +236,67 @@
                     fetch('/drops')
                         .then(res => res.json())
                         .then((drops) => this.drops = drops)
+
+                    const ws = new WebSocket(document.location.origin.replace(/^http/, 'ws'))
+
+                    setInterval(() => ws.send("ping"), 45000)
+
+                    ws.addEventListener('message', (e) => {
+                        try {
+                            const json = JSON.parse(e.data)
+                            if(json.type === 'new-file') {
+                                this.drops.push(json.payload)
+                            }
+
+                        } catch (e) {
+                            console.error(e)
+                        } 
+                    })
+
+                    
                 },
-                template: `<div>
-
-                    Drop list...
-
-                    <ol>
-                    <li v-for="drop in drops">
-                        drop: {{drop.path}}<br />
-                        date: {{drop.date}}<br />
-                        name: {{drop.name}}<br />
-                        
-                        <audio v-bind:src="'/drops/' + drop.path" controls />
-                    </li>
-                    </ol>
-                        
-                    </div>`
+                template: '#drop-list'
             })
 
-            new Vue({ el: '#app' })
 
+            Vue.component('sound-player', {
+                props: ['src'],
+                data: () => {
+                    return {
+                        player: null,
+                        duration: 0,
+                        isPlaying: false
+                    }
+                },
+                 
+                mounted() {
+                    const vm = this;
+                    const player = this.player =  new Howl({
+                        src: [this.src]
+                    });
 
+                    this.player.on('play', function(){
+                        vm.duration = player.duration();
+                        vm.isPlaying = true
+                    });  
+                    this.player.on('stop', function(){
+                        vm.isPlaying = false
+                    });                   
+                },
 
+                methods: {
+                    play () {
+                        this.player.play()
+                    },
+                    stop () {
+                        this.player.stop()
+                    }
+                },
 
+                template: '#sound-player'
+            })
+
+            new Vue({ el: '#app' });
 
         </script>
     </body>

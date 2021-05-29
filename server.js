@@ -3,6 +3,29 @@ const multer = require('multer');
 const slugify = require('slugify');
 const fs = require('fs/promises');
 const path = require('path');
+const ws = require('ws');
+const http = require('http')
+const getAudioDurationInSeconds = require('get-audio-duration').getAudioDurationInSeconds;
+
+
+const port = process.env.PORT || 3000;
+const app = express();
+const server = http.createServer(app);
+const wss = new ws.Server({ server });
+
+wss.addListener('connection', () => {
+    console.log("CONNECT")
+})
+
+function broadcast(message) {
+    for(const client of wss.clients) {
+        if (client.readyState === ws.OPEN) {
+            client.send(JSON.stringify(message));
+        }
+    }
+}
+
+
 
 const upload = multer({
     storage: multer.diskStorage({
@@ -11,9 +34,14 @@ const upload = multer({
         },
         filename: (req, file, cb) => {
             const time = new Date().getTime()
-            const name = slugify(req.body.username || 'anonymous', {remove: /[\\\/*+~.()'"!:@]/g}).slice(0,30);
+            const name = slugify(req.body.username || 'anonymous', {remove: /[\\\/*+~.()'"!\?:@]/g}).slice(0,30);
 
             const filename = `${time}-${name}.ogg`
+
+            broadcast({
+                type: 'new-file',
+                payload: nameMap(filename)
+            })
 
             cb(null, filename);
         }
@@ -26,12 +54,10 @@ const upload = multer({
     }
 });
 
-const port = process.env.PORT || 3000;
-
-const app = express();
 
 app.post('/drop', upload.single('file'), (req, res) => {
-    res.send("thanks")
+    // res.send("thanks")
+    res.redirect('/')
 })
 
 
@@ -40,15 +66,34 @@ app.get('/drops/:file', (req, res) => {
     res.sendFile(full)
 })
 
-app.get('/drops', async (req, res) => {
-    const files = await fs.readdir('./drops')
+app.get('/duration/:file', (req, res) => {
+    const full = path.join(__dirname, 'drops', req.params.file);
 
-    const json = files.map(file => ({
+    getAudioDurationInSeconds(full).then(duration => {
+        res.send({duration})
+
+
+    })
+})
+
+
+
+// const Ref = //
+
+
+function nameMap(file) {
+    return ({
         path: file,
         date: (new Date(file.split('-')[0]*1)).toLocaleDateString(),
         name: file.split('-')[1].split('.')[0]
         // 
-    }))
+    })
+}
+
+app.get('/drops', async (req, res) => {
+    const files = await fs.readdir('./drops')
+
+    const json = files.map(nameMap)
 
     res.send(json)
 
@@ -62,6 +107,7 @@ app.get('/drops', async (req, res) => {
 // load files in ./static directory
 app.use(express.static('static'))
 
-app.listen(port, () => {
+
+server.listen(port, () => {
     console.log(`Listening on http://localhost:${port}`);
 });
