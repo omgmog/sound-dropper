@@ -1,0 +1,21 @@
+version: "3.7"
+
+services:
+  app:
+    image: node:14-alpine
+    # Dev only :D 
+    command: sh -c "npm install && npm run serve"
+    ports:
+      - 3000:3000
+    working_dir: /app
+    volumes:
+      - ./:/app
+  nginx:
+    image: nginx:1.21
+    ports:
+      - 8080:80
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+      
