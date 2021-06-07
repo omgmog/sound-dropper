@@ -92,7 +92,7 @@ function nameMap(file) {
 
 app.get('/drops', async (req, res) => {
     const files = await fs.readdir('./drops')
-    const json = files.filter((name) => { name.endsWith('ogg') }).map(nameMap)
+    const json = files.filter((name) => { return name.endsWith('ogg') }).map(nameMap)
 
     res.send(json)
 
