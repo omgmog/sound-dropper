@@ -63,8 +63,10 @@
                         {{device.label}}
                     </option>
                 </select>
+                <notification ref="successNotification">Selection saved</notification>
             </div>
         </template>
+
         <template id="app-login">
             <div v-if="submitted" class=" is-flex is-justify-content-flex-end is-align-items-center">
                 <p>
@@ -105,6 +107,12 @@
             </div>
         </template>
 
+        <template id="notification">
+            <div class="notification is-success" v-if="!hidden">
+                <button class="delete" @click="hide"></button>
+                <slot></slot>
+            </div>
+        </template>
         <script src="./dropper.js"></script>
         <script>            
             Vue.component('drop-adder', {
@@ -216,11 +224,11 @@
                     devices = await navigator.mediaDevices.enumerateDevices()
 
                     this.devices = devices.filter(device=>device.kind==='audioinput');
-
                 },
                 watch: {
                     device(dev) {
                         localStorage.setItem('device', dev);
+                        this.$refs.successNotification.show()
                     }
                 },
                 template: '#input-select'
@@ -326,6 +334,23 @@
                 },
 
                 template: '#sound-player'
+            })
+
+            Vue.component('notification', {
+                template: '#notification',
+                data: () => { 
+                    return {
+                        hidden: true
+                    } 
+                },
+                
+                methods: {
+                    show() { 
+                        this.hidden = false
+                        setTimeout(this.hide, 2000)
+                    },
+                    hide() { this.hidden = true }
+                }
             })
 
             new Vue({ el: '#app' });
