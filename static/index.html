@@ -101,7 +101,7 @@
 
         <template id="sound-player">
             <div class="is-flex is-flex-direction-row">
-                <span class="is-flex-grow-1"><strong>{{ drop.name }}</strong> {{drop.date}} ({{duration}}) </span>
+                <span class="is-flex-grow-1"><strong>{{ drop.name }}</strong> {{dropDate}} at {{dropTime}} ({{dropTimecode}}) </span>
                 <button v-on:click="play" v-if="!isPlaying" class="button is-dark is-align-self-flex-end">Play</button>
                 <button v-on:click="stop" v-if="isPlaying" class="button is-dark is-align-self-flex-end">Stop</button> 
             </div>
@@ -307,10 +307,12 @@
                         src: [`/drops/${vm.drop.path}`]
                     });
 
-                    this.date = vm.drop.path.split('-')[0];
+                    // this.date = vm.drop.path.split('-')[0];
 
-                    this.player.on('play', function(){
+                    this.player.on('load', function(){
                         vm.duration = player.duration();
+                    });
+                    this.player.on('play', function(){
                         vm.isPlaying = true
                     });  
                     this.player.on('stop', function(){
@@ -333,6 +335,30 @@
                     },
                     stop () {
                         this.player.stop()
+                    }
+                },
+
+                computed: {
+                    
+                    dropDate() {
+                        return new Date(this.drop.date).toLocaleDateString()
+                    },
+
+                    dropTime() {
+                        const dropDate = new Date(this.drop.date)
+                        
+                        // we pass undefined as the locale to let us pass options without overriding the host locale
+                        const hours = dropDate.getHours().toLocaleString(undefined, { minimumIntegerDigits: 2 })
+                        return `${hours}:${dropDate.getMinutes()}`
+                    },
+
+                    dropTimecode() {
+                        var seconds = Math.floor(this.duration % 60).toString();
+                        var minutes = Math.floor(this.duration / 60).toString();
+                        if (seconds.length === 1) {
+                            seconds = '0' + seconds;
+                        }
+                        return minutes + ':' + seconds;
                     }
                 },
 
