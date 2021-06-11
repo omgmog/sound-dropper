@@ -23,3 +23,14 @@ npm run build
 ```
 npm run lint
 ```
+
+## Running in production
+
+```
+npm run build
+node server.js
+```
+
+# References
+
+- https://dennisreimann.de/articles/vue-cli-serve-express.html was really useful for getting the API routes working inside vue-cli as well as standalone.
