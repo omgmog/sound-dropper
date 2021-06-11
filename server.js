@@ -84,7 +84,7 @@ app.get('/duration/:file', (req, res) => {
 function nameMap(file) {
     return ({
         path: file,
-        date: (new Date(file.split('-')[0]*1)).toLocaleDateString(),
+        date: new Date(file.split('-')[0]*1),
         name: file.split('-')[1].split('.')[0]
         // 
     })
