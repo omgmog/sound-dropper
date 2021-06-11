@@ -1,4 +1,7 @@
-node_modules
+# Directories
+dist
 drops
+node_modules
+
+# Files
 package-lock.json
-/dist
