@@ -31,9 +31,11 @@ module.exports = app => {
       },
       filename: (req, file, cb) => {
         const time = new Date().getTime();
-        const name = slugify(req.body.username || 'anonymous', { remove: /[\\\/*+~.()'"!\?:@]/g }).slice(0, 30);
+        let nameIn = req.body.username;
+        const nameOut = slugify(nameIn, { remove: /[\\\/*+~.()`'"!\?:@]/g }).slice(0, 30);
 
-        const filename = `${time}-${name}.ogg`;
+        const filename = `${time}-${nameOut}.ogg`;
+
 
         broadcast({
           type: 'new-file',
@@ -52,7 +54,6 @@ module.exports = app => {
   });
 
   app.post('/drop', upload.single('file'), (req, res) => {
-    // res.send("thanks")
     res.redirect('/');
   });
 
@@ -69,14 +70,11 @@ module.exports = app => {
     });
   });
 
-  // const Ref = //
-
   function nameMap(file) {
     return ({
       path: file,
       date: new Date(file.split('-')[0] * 1),
-      name: file.split('-')[1].split('.')[0],
-      //
+      name: file.split('-')[1].split('.')[0],   // this is flakey
     });
   }
 
@@ -85,7 +83,5 @@ module.exports = app => {
     const json = files.filter((name) => name.endsWith('ogg')).map(nameMap);
 
     res.send(json);
-
-    // console.log(dir)
   });
 }

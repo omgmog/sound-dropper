@@ -77,7 +77,7 @@ export default {
 
         const data = new FormData();
         // TODO username.value
-        data.append('username', localStorage.getItem('name'));
+        data.append('username', localStorage.getItem('name') || 'anonymous');
         data.append(
           'file',
           new File([blob], 'upload.ogg', { type: blob.type }),
