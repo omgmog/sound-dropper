@@ -99,24 +99,14 @@
 
         <template id="sound-player">
             <div class="is-flex is-flex-direction-row">
-                <span class="is-flex-grow-1"><strong>{{ drop.name }}</strong> {{dropDate}} at {{dropTime}} ({{duration | timecode}}) </span>
+                <span class="is-flex-grow-1"><strong>{{ drop.name }}</strong> {{dropDate}} at {{dropTime}} ({{duration}}) </span>
                 <button v-on:click="play" v-if="!isPlaying" class="button is-dark is-align-self-flex-end">Play</button>
                 <button v-on:click="stop" v-if="isPlaying" class="button is-dark is-align-self-flex-end">Stop</button> 
             </div>
         </template>
 
         <script src="./dropper.js"></script>
-        <script>
-            // Credit: https://gist.github.com/diverted247/1b8335579f1fa31ed6e2
-            Vue.filter('timecode', function (value) {
-                    var seconds = Math.floor(value % 60).toString();
-                    var minutes = Math.floor(value / 60).toString();
-                    if (seconds.length === 1) {
-                        seconds = '0' + seconds;
-                    }
-                    return minutes + ':' + seconds;
-                });
-
+        <script>            
             Vue.component('drop-adder', {
                 data: () => ({
                     isRecording: false,
