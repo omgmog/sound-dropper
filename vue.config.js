@@ -2,6 +2,7 @@ const configureAPI = require('./server/api')
 
 module.exports = {
   devServer: {
-    before: configureAPI
+    before: configureAPI,
+    port: 3000
   }
 }
