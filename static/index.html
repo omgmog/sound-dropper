@@ -305,11 +305,12 @@
                     const player = this.player =  new Howl({
                         src: [`/drops/${vm.drop.path}`]
                     });
-
+                    
                     this.date = vm.drop.path.split('-')[0];
-
-                    this.player.on('play', function(){
+                    this.player.on('load', function(){
                         vm.duration = player.duration();
+                    });
+                    this.player.on('play', function(){
                         vm.isPlaying = true
                     });  
                     this.player.on('stop', function(){
