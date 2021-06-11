@@ -19,7 +19,7 @@ export default {
   },
   data: () => ({
     devices: [],
-    device: localStorage.getItem('device'),
+    device: localStorage.getItem('device') || 'default',
   }),
   async mounted() {
     // we need to wait for getUserMedia to get mic permission from the user
