@@ -214,13 +214,9 @@
                 data: () => ({
                     
                     devices: [],
-                    device: ''
+                    device: localStorage.getItem('device')
                 }),
                 async mounted() {
-                    if (localStorage.device) {
-                        this.device = localStorage.getItem('device');
-                    }
-
                     devices = await navigator.mediaDevices.enumerateDevices()
 
                     this.devices = devices.filter(device=>device.kind==='audioinput');
