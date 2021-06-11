@@ -212,7 +212,10 @@
                     if (localStorage.device) {
                         this.device = localStorage.getItem('device');
                     }
-
+                    // we need to wait for getUserMedia to get mic permission from the user
+                    // before we can enumerateDevices (or anything else)
+                    await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+                    
                     devices = await navigator.mediaDevices.enumerateDevices()
 
                     this.devices = devices.filter(device=>device.kind==='audioinput');
