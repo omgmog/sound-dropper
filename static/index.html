@@ -217,8 +217,15 @@
                     device: localStorage.getItem('device')
                 }),
                 async mounted() {
-                    devices = await navigator.mediaDevices.enumerateDevices()
+                    // we need to wait for getUserMedia to get mic permission from the user
+                    // before we can enumerateDevices (or anything else)
+                    await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
 
+                    if (localStorage.device) {
+                        this.device = localStorage.getItem('device');
+                    }
+                  
+                    devices = await navigator.mediaDevices.enumerateDevices()
                     this.devices = devices.filter(device=>device.kind==='audioinput');
                 },
                 watch: {
