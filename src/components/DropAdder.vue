@@ -3,14 +3,14 @@
     <button
       v-if="!isRecording"
       v-on:click="startRecording"
-      class="button is-primary"
+      class="button is-primary mr-2"
     >
       Drop
     </button>
     <button
       v-if="isRecording"
       v-on:click="stopRecording"
-      class="button is-primary"
+      class="button is-primary mr-2"
     >
       Stop
     </button>
@@ -21,7 +21,9 @@
     >
       Cancel
     </button>
-    <span v-if="isRecording">🔴</span>
+    <span v-if="isRecording" class="icon is-medium">
+      <span class="recording-indicator"></span>
+    </span>
   </div>
 </template>
 
@@ -117,3 +119,17 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+  #controls {
+    margin: auto;
+  }
+  .recording-indicator {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+  }
+  .recording-indicator::before {
+    content: '🔴';
+  }
+</style>

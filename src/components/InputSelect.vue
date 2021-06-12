@@ -1,5 +1,5 @@
 <template>
-  <div class="select">
+  <div class="select mr-2">
     <select v-model="device">
       <option v-for="device in devices" v-bind:key="device.deviceId" v-bind:value="device.deviceId">
         {{device.label}}
@@ -44,7 +44,7 @@ export default {
 
 <style scoped>
   .select {
-      margin: auto;
-      max-width: 300px;
+    margin: auto;
+    max-width: 15rem;
   }
 </style>
