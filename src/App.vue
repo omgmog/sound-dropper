@@ -1,12 +1,10 @@
 <template>
-  <div>
     <NavBar></NavBar>
 
-    <div class="container">
+    <div id="main" class="container is-max-desktop">
       <DropList></DropList>
       <DropAdder></DropAdder>
     </div>
-  </div>
 </template>
 
 <script>
@@ -23,3 +21,13 @@ export default {
   },
 };
 </script>
+<style>
+  #app,
+  #app > div,
+  #main {
+    height: 100%;
+  }
+  #main {
+    max-height: calc(100% - 52px);
+  }
+</style>

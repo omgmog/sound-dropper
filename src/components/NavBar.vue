@@ -1,10 +1,9 @@
 <template>
   <nav class="navbar is-black" role="navigation" aria-label="main navigation">
-      <div class="container">
+      <div class="container is-max-desktop">
           <div class="navbar-start">
             <AppLogin></AppLogin>
           </div>
-          <h1 class="navbar-brand is-size-3">{{title}}</h1>
           <div class="navbar-end"><InputSelect></InputSelect></div>
       </div>
   </nav>
@@ -20,8 +19,5 @@ export default {
     AppLogin,
     InputSelect,
   },
-  data: () => ({
-    title: 'Dropper',
-  }),
 };
 </script>

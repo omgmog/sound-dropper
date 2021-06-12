@@ -46,8 +46,8 @@ export default {
 
 <style scoped>
   .drop-list {
-    height: 100vh;
-    max-height: calc(100vh - 175px);
+    height: 100%;
+    max-height: calc(100% - 40px);
     overflow: hidden;
     overflow-y: scroll;
     display: flex;
