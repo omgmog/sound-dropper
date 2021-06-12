@@ -17,7 +17,13 @@ module.exports = {
     name: 'Sound Dropper',
     themeColor: '#1a1a1a',
     msTileColor: '#1a1a1a',
+    workboxPluginMode: 'InjectManifest',
+    workboxOptions: {
+      swSrc: 'public/sw.js',
+    },
     manifestOptions: {
+      start_url: process.env.NODE_ENV === 'production' ? 'https://sound.me.uk/?pwa=true' : '.',
+      orientation: 'portrait',
       icons: [
         {
           src: "./img/icons/android-chrome-192x192.png",
