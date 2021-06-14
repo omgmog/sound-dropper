@@ -17,5 +17,6 @@ module.exports = {
     'linebreak-style': 'off',
     'no-underscore-dangle': 'off',
     'prefer-template': 'off',
+    'prefer-destructuring': 'off',
   },
 };

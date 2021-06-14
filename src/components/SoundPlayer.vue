@@ -1,68 +1,104 @@
  <template>
-  <div class="is-flex is-flex-direction-row">
-    <span class="is-flex-grow-1">
-      <strong>{{ drop.name }}</strong> {{dropDate}} at {{dropTime}} ({{dropTimecode}})
-      <br>ID:{{ $root.drops[index].id }}
-    </span>
-    <button v-on:click="play"
-    v-if="!$root.isPlaying || ($root.currentPlaying != index)"
-    class="button is-primary is-align-self-flex-end">
-      Play
-    </button>
-    <button v-on:click="stop"
-    v-if="$root.isPlaying && ($root.currentPlaying == index)"
-    class="button is-danger is-align-self-flex-end">
-      Stop
-    </button>
+  <div>
+    <div class="is-flex is-flex-direction-row">
+      <span class="is-flex-grow-1">
+        <strong>{{ drop.name }}</strong> {{dropDate}} at {{dropTime}} ({{dropTimecode}})
+        <br>ID:{{ $root.drops[index].id }}
+      </span>
+      <button
+      v-on:click="play"
+      v-if="!$root.isPlaying || ($root.currentPlaying != index)"
+      class="button is-primary is-align-self-flex-end">
+        Play
+      </button>
+      <button
+      v-on:click="stop"
+      v-if="$root.isPlaying && ($root.currentPlaying == index)"
+      class="button is-danger is-align-self-flex-end">
+        Stop
+      </button>
+    </div>
+    <div class="progress-track has-background-grey-lighter mt-4">
+      <div class="progress-bar has-background-primary"
+      v-bind:style="{width:progress+'%'}"></div>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.progress-track {
+  width: 100%;
+  height: 4px;
+}
+.progress-bar {
+  height: 100%;
+  width: 0;
+}
+</style>
 
 <script>
 import { Howl } from 'howler';
 
 const leftPad = (val) => `0${val}`.substr(-2);
 
+// clearInterval wrapper so we can debug easily
+const clearTheInterval = (which) => {
+  clearInterval(which);
+  // console.log(`Cleared ${which}`);
+};
+
 export default {
   name: 'SoundPlayer',
   props: ['drop', 'index'],
   data: () => ({
     duration: 0,
-    isPlaying: false,
     date: null,
+    player: null,
+    interval: null,
+    progress: 0,
   }),
 
   mounted() {
     const vm = this;
-    vm.$root.drops[vm.index].player = new Howl({
+    const root = vm.$root;
+
+    root.drops[vm.index].player = new Howl({
       src: [`/drops/${vm.drop.path}`],
     });
 
-    vm.$root.drops[vm.index].player.on('load', () => {
-      vm.duration = vm.$root.drops[vm.index].player.duration();
+    root.drops[vm.index].player.on('load', () => {
+      vm.duration = root.drops[vm.index].player.duration();
       // update the player id for the drop in the root drops list based on Howler's player
-      vm.$root.drops[vm.index].id = vm.$root.drops[vm.index].player._sounds[0]._id;
+      const soundId = root.drops[vm.index].player._sounds[0]._id;
+      root.drops[vm.index].id = soundId;
     });
-    vm.$root.drops[vm.index].player.on('play', () => {
-      vm.$root.isPlaying = true;
+    root.drops[vm.index].player.on('play', () => {
+      root.isPlaying = true;
+      root.currentPlaying = vm.index;
 
-      vm.$root.currentPlaying = vm.index;
+      const intervalStep = root.drops[vm.index].player.duration();
+      vm.interval = setInterval(() => {
+        vm.updateProgress();
+      }, intervalStep);
     });
-    vm.$root.drops[vm.index].player.on('stop', () => {
-      vm.$root.isPlaying = false;
-
-      vm.$root.currentPlaying = null;
+    root.drops[vm.index].player.on('stop', () => {
+      root.isPlaying = false;
+      root.currentPlaying = null;
+      clearTheInterval(vm.interval);
     });
-    vm.$root.drops[vm.index].player.on('end', () => {
-      vm.$root.isPlaying = false;
+    root.drops[vm.index].player.on('end', () => {
+      root.isPlaying = false;
+      root.currentPlaying = vm.index + 1;
 
-      vm.$root.currentPlaying = vm.index + 1;
-
-      if (vm.$root.currentPlaying < vm.$root.drops.length) {
-        vm.$root.drops[vm.$root.currentPlaying].player.play();
+      if (root.currentPlaying < root.drops.length) {
+        root.drops[root.currentPlaying].player.play();
       } else {
-        vm.$root.currentPlaying = null;
-        vm.$root.drops[vm.$root.currentPlaying].player.stop();
+        root.currentPlaying = null;
+        if (root.drops[root.currentPlaying]) {
+          root.drops[root.currentPlaying].player.stop();
+        }
       }
+      clearTheInterval(vm.interval);
     });
   },
 
@@ -80,11 +116,16 @@ export default {
     stop() {
       const vm = this;
       vm.$root.drops[vm.index].player.stop();
+      clearInterval(vm.interval);
+    },
+
+    updateProgress() {
+      const player = this.$root.drops[this.index].player;
+      this.progress = ((100 / player.duration()) * player.seek()).toFixed(2);
     },
   },
 
   computed: {
-
     dropDate() {
       return new Date(this.drop.date).toLocaleDateString();
     },
