@@ -19,6 +19,13 @@ export default {
     DropList,
     NavBar,
   },
+  data() {
+    return {
+      currentPlaying: null,
+      isPlaying: false,
+      drops: [],
+    };
+  },
 };
 </script>
 <style>

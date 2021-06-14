@@ -72,6 +72,7 @@ module.exports = app => {
 
   function nameMap(file) {
     return ({
+      id: null,
       path: file,
       date: new Date(file.split('-')[0] * 1),
       name: file.split('-')[1].split('.')[0],   // this is flakey

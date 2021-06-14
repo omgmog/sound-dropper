@@ -2,11 +2,16 @@
   <div class="is-flex is-flex-direction-row">
     <span class="is-flex-grow-1">
       <strong>{{ drop.name }}</strong> {{dropDate}} at {{dropTime}} ({{dropTimecode}})
+      <br>ID:{{ $root.drops[index].id }}
     </span>
-    <button v-on:click="play" v-if="!isPlaying" class="button is-dark is-align-self-flex-end">
+    <button v-on:click="play"
+    v-if="!$root.isPlaying || ($root.currentPlaying != index)"
+    class="button is-primary is-align-self-flex-end">
       Play
     </button>
-    <button v-on:click="stop" v-if="isPlaying" class="button is-dark is-align-self-flex-end">
+    <button v-on:click="stop"
+    v-if="$root.isPlaying && ($root.currentPlaying == index)"
+    class="button is-danger is-align-self-flex-end">
       Stop
     </button>
   </div>
@@ -16,11 +21,11 @@
 import { Howl } from 'howler';
 
 const leftPad = (val) => `0${val}`.substr(-2);
+
 export default {
   name: 'SoundPlayer',
-  props: ['drop'],
+  props: ['drop', 'index'],
   data: () => ({
-    player: null,
     duration: 0,
     isPlaying: false,
     date: null,
@@ -28,38 +33,53 @@ export default {
 
   mounted() {
     const vm = this;
-    vm.player = new Howl({
+    vm.$root.drops[vm.index].player = new Howl({
       src: [`/drops/${vm.drop.path}`],
     });
 
-    // this.date = vm.drop.path.split('-')[0];
+    vm.$root.drops[vm.index].player.on('load', () => {
+      vm.duration = vm.$root.drops[vm.index].player.duration();
+      // update the player id for the drop in the root drops list based on Howler's player
+      vm.$root.drops[vm.index].id = vm.$root.drops[vm.index].player._sounds[0]._id;
+    });
+    vm.$root.drops[vm.index].player.on('play', () => {
+      vm.$root.isPlaying = true;
 
-    vm.player.on('load', () => {
-      vm.duration = vm.player.duration();
+      vm.$root.currentPlaying = vm.index;
     });
-    vm.player.on('play', () => {
-      vm.isPlaying = true;
+    vm.$root.drops[vm.index].player.on('stop', () => {
+      vm.$root.isPlaying = false;
+
+      vm.$root.currentPlaying = null;
     });
-    vm.player.on('stop', () => {
-      vm.isPlaying = false;
-    });
-    vm.player.on('end', () => {
-      vm.isPlaying = false;
+    vm.$root.drops[vm.index].player.on('end', () => {
+      vm.$root.isPlaying = false;
+
+      vm.$root.currentPlaying = vm.index + 1;
+
+      if (vm.$root.currentPlaying < vm.$root.drops.length) {
+        vm.$root.drops[vm.$root.currentPlaying].player.play();
+      } else {
+        vm.$root.currentPlaying = null;
+        vm.$root.drops[vm.$root.currentPlaying].player.stop();
+      }
     });
   },
 
   methods: {
     play() {
-      if (window.currentPlaying !== this.player) {
-        if (window.currentPlaying) {
-          window.currentPlaying.stop();
+      const vm = this;
+      if (vm.$root.currentPlaying !== vm.index) {
+        if (vm.$root.currentPlaying) {
+          vm.$root.drops[vm.index].player.stop();
         }
-        window.currentPlaying = this.player;
-        this.player.play();
+        vm.$root.currentPlaying = vm.index;
+        vm.$root.drops[vm.index].player.play();
       }
     },
     stop() {
-      this.player.stop();
+      const vm = this;
+      vm.$root.drops[vm.index].player.stop();
     },
   },
 

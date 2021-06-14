@@ -1,8 +1,8 @@
 <template>
   <div class="drop-list menu">
     <ol class="menu-list">
-      <li v-for="drop in drops" v-bind:key="drop.path" class="box">
-        <SoundPlayer v-bind:drop="drop"></SoundPlayer>
+      <li v-for="(drop, index) in $root.drops" v-bind:key="drop.path" class="box">
+        <SoundPlayer v-bind:drop="drop" v-bind:index="index"></SoundPlayer>
       </li>
     </ol>
   </div>
@@ -16,15 +16,10 @@ export default {
   components: {
     SoundPlayer,
   },
-  data() {
-    return {
-      drops: [],
-    };
-  },
   mounted() {
     fetch('/drops')
       .then((res) => res.json())
-      .then((drops) => { this.drops = drops; });
+      .then((drops) => { this.$root.drops = drops; });
 
     const ws = new WebSocket(document.location.origin.replace(/^http/, 'ws'));
 
@@ -34,7 +29,7 @@ export default {
       try {
         const json = JSON.parse(e.data);
         if (json.type === 'new-file') {
-          this.drops.push(json.payload);
+          this.$root.drops.push(json.payload);
         }
       } catch (error) {
         console.error(error);
