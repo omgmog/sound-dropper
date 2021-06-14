@@ -1,5 +1,7 @@
 const configureAPI = require('./server/api');
 
+const APP_TITLE = 'Sound Dropper';
+
 module.exports = {
   devServer: {
     before: configureAPI,
@@ -9,20 +11,16 @@ module.exports = {
     config
       .plugin('html')
       .tap((args) => {
-        args[0].title = 'Sound Dropper';
+        args[0].title = APP_TITLE;
         return args;
       });
   },
   pwa: {
-    name: 'Sound Dropper',
+    name: APP_TITLE,
     themeColor: '#1a1a1a',
     msTileColor: '#1a1a1a',
-    workboxPluginMode: 'InjectManifest',
-    workboxOptions: {
-      swSrc: 'public/sw.js',
-    },
     manifestOptions: {
-      start_url: process.env.NODE_ENV === 'production' ? 'https://sound.me.uk/?pwa=true' : '.',
+      start_url: process.env.NODE_ENV === 'production' ? 'https://sound.me.uk' : '.',
       orientation: 'portrait',
       icons: [
         {
