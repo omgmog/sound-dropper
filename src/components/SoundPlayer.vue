@@ -15,6 +15,7 @@
 <script>
 import { Howl } from 'howler';
 
+const leftPad = (val) => `0${val}`.substr(-2);
 export default {
   name: 'SoundPlayer',
   props: ['drop'],
@@ -73,15 +74,12 @@ export default {
 
       // we pass undefined as the locale to let us pass options without overriding the host locale
       const hours = dropDate.getHours().toLocaleString(undefined, { minimumIntegerDigits: 2 });
-      return `${hours}:${dropDate.getMinutes()}`;
+      return `${hours}:${leftPad(dropDate.getMinutes())}`;
     },
 
     dropTimecode() {
-      let seconds = Math.floor(this.duration % 60).toString();
       const minutes = Math.floor(this.duration / 60).toString();
-      if (seconds.length === 1) {
-        seconds = `0${seconds}`;
-      }
+      const seconds = leftPad(Math.floor(this.duration % 60));
       return `${minutes}:${seconds}`;
     },
   },
