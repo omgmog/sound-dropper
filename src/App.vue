@@ -26,10 +26,14 @@ export default {
   data() {
     return {
       currentPlaying: null,
-      isPlaying: false,
       isLoggedIn: false,
       drops: [],
     };
+  },
+  computed: {
+    isPlaying() {
+      return this.currentPlaying !== null;
+    },
   },
 };
 </script>
