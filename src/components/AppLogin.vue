@@ -1,26 +1,39 @@
 <template id="app-login">
-  <div v-if="submitted" class=" is-flex is-justify-content-flex-end is-align-items-center">
-    <p>
-      Hello {{ name }}
-    </p>
-    <button
-        @click.prevent="submitted = false"
-        class="button is-light ml-2 is-small is-outlined tag">
-      Not you?
-    </button>
+  <Notification ref="successNotification">Name saved</Notification>
+  <div class="toolbar-username">
+    <div v-if="submitted">
+      <div class="">
+        <h3 class="no-margin truncate">
+          Hello {{ name }}
+        </h3>
+        <button
+            @click.prevent="clearName()"
+            class="button-xxs button-pill margin-left-s">
+          Not you?
+        </button>
+      </div>
+    </div>
+    <div v-else>
+      <form
+          @submit.prevent="submitted = true"
+          class="input-group">
+        <input ref="name" type="text" placeholder="Your name"/>
+        <button
+        class="button"
+        @click.prevent="setName()">set name</button>
+      </form>
+    </div>
   </div>
-  <form
-      v-else @submit.prevent="submitted = true"
-      class="m-0 is-flex is-justify-content-flex-end is-align-items-center">
-    <input v-model="name" type="text" placeholder="Your name" class="input"/>
-    <button class="button is-dark ml-2">set name</button>
-  </form>
 </template>
 
 <script>
+import Notification from './Notification.vue';
+
 export default {
   name: 'AppLogin',
-
+  components: {
+    Notification,
+  },
   data: () => ({
     submitted: false,
     name: '',
@@ -29,11 +42,24 @@ export default {
     if (localStorage.name) {
       this.name = localStorage.getItem('name');
       this.submitted = !!this.name;
+      this.$root.isLoggedIn = !!this.name;
     }
   },
-  watch: {
-    name(newName) {
-      localStorage.setItem('name', newName);
+  methods: {
+    clearName() {
+      this.name = '';
+      localStorage.clear('name');
+      this.submitted = false;
+      this.$root.isLoggedIn = false;
+    },
+    setName() {
+      const getName = this.$refs.name.value;
+      this.name = getName;
+
+      localStorage.setItem('name', getName);
+      this.submitted = !!this.name;
+      this.$root.isLoggedIn = this.submitted;
+      this.$refs.successNotification.show();
     },
   },
 };

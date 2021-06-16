@@ -1,7 +1,7 @@
 <template>
-  <div class="drop-list menu">
-    <ol class="menu-list">
-      <li v-for="(drop, index) in $root.drops" v-bind:key="drop.path" class="box">
+  <div class="drop-list">
+    <ol>
+      <li v-for="(drop, index) in $root.drops" v-bind:key="drop.path">
         <SoundPlayer v-bind:drop="drop" v-bind:index="index"></SoundPlayer>
       </li>
     </ol>
@@ -38,14 +38,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-  .drop-list {
-    height: 100%;
-    max-height: calc(100% - 40px);
-    overflow: hidden;
-    overflow-y: scroll;
-    display: flex;
-    flex-direction: column-reverse;
-  }
-</style>

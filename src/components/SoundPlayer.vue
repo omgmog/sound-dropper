@@ -1,26 +1,27 @@
  <template>
-  <div>
-    <div class="is-flex is-flex-direction-row">
-      <span class="is-flex-grow-1">
-        <strong>{{ drop.name }}</strong> {{dropDate}} at {{dropTime}} ({{dropTimecode}})
-        <br>ID:{{ $root.drops[index].id }}
-      </span>
+  <div class="drop-list-item flex justify-content-space-between">
+    <!-- Metadata -->
+    <div class="meta">
+      <h4>{{ drop.name }} {{dropDate}} at {{dropTime}}</h4>
+      <!-- <br>ID:{{ $root.drops[index].id }} -->
+    </div>
+
+    <!-- Player -->
+    <div class="player flex align-items-center">
       <button
       v-on:click="play"
       v-if="!$root.isPlaying || ($root.currentPlaying != index)"
-      class="button is-primary is-align-self-flex-end">
-        Play
+      class="button button-square button-icon button-pill button-success" title="Play">
+        <SvgIcons icon="play" cssClass="icon-xxs" altText="Play"/>
       </button>
       <button
       v-on:click="stop"
       v-if="$root.isPlaying && ($root.currentPlaying == index)"
-      class="button is-danger is-align-self-flex-end">
-        Stop
+      class="button button-square button-icon button-error" title="Stop">
+        <SvgIcons icon="stop" cssClass="icon-xxs" altText="Stop"/>
       </button>
-    </div>
-    <div class="progress-track has-background-grey-lighter mt-4">
-      <div class="progress-bar has-background-primary"
-      v-bind:style="{width:progress+'%'}"></div>
+      <progress max="100" v-bind:value="progress"></progress>
+      <span class="length">({{dropTimecode}})</span>
     </div>
   </div>
 </template>
@@ -38,6 +39,7 @@
 
 <script>
 import { Howl } from 'howler';
+import SvgIcons from './SvgIcons.vue';
 
 const leftPad = (val) => `0${val}`.substr(-2);
 
@@ -49,6 +51,9 @@ const clearTheInterval = (which) => {
 
 export default {
   name: 'SoundPlayer',
+  components: {
+    SvgIcons,
+  },
   props: ['drop', 'index'],
   data: () => ({
     duration: 0,
@@ -89,6 +94,7 @@ export default {
     root.drops[vm.index].player.on('end', () => {
       root.isPlaying = false;
       root.currentPlaying = vm.index + 1;
+      vm.progress = 100;
 
       if (root.currentPlaying < root.drops.length) {
         root.drops[root.currentPlaying].player.play();

@@ -1,40 +1,35 @@
 <template>
-    <NavBar></NavBar>
-
-    <div id="main" class="container is-max-desktop">
+    <div id="main" class="container">
       <DropList></DropList>
-      <DropAdder></DropAdder>
+      <div class="toolbar flex align-items-center">
+        <InputSelect></InputSelect>
+        <DropAdder></DropAdder>
+        <AppLogin></AppLogin>
+      </div>
     </div>
 </template>
 
 <script>
 import DropAdder from './components/DropAdder.vue';
 import DropList from './components/DropList.vue';
-import NavBar from './components/NavBar.vue';
+import AppLogin from './components/AppLogin.vue';
+import InputSelect from './components/InputSelect.vue';
 
 export default {
   name: 'App',
   components: {
+    AppLogin,
     DropAdder,
     DropList,
-    NavBar,
+    InputSelect,
   },
   data() {
     return {
       currentPlaying: null,
       isPlaying: false,
+      isLoggedIn: false,
       drops: [],
     };
   },
 };
 </script>
-<style>
-  #app,
-  #app > div,
-  #main {
-    height: 100%;
-  }
-  #main {
-    max-height: calc(100% - 52px);
-  }
-</style>

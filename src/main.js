@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 
-import 'bulma/css/bulma.css';
+import 'turretcss/dist/turretcss.min.css';
+import './style.css';
 
 createApp(App).mount('#app');

@@ -1,35 +1,45 @@
 <template>
-  <div id="controls">
-    <button
-      v-if="!isRecording"
-      v-on:click="startRecording"
-      class="button is-primary mr-2"
+  <div id="controls" class="toolbar-recorder flex justify-content-center">
+    <Notification ref="recordingNotification">Recording</Notification>
+    <Notification ref="savedNotification">Recording saved</Notification>
+    <Notification ref="discardedNotification" msgType="error">Recording discarded</Notification>
+    <div
+      v-if="$root.isLoggedIn">
+      <div v-if="!isRecording">
+        <button
+          v-on:click="startRecording"
+          class="button button-pill button-xxl button-success"
+        >Drop</button>
+      </div>
+      <div v-else>
+        <button
+          v-on:click="stopRecording"
+          class="button button-pill button-xxl button-success"
+          >Stop</button>
+        <button
+          v-on:click="cancelRecording"
+          class="button button-pill button-error margin-horizontal-s"
+          >Cancel</button>
+      </div>
+    </div>
+    <div
+      v-else
     >
-      Drop
-    </button>
     <button
-      v-if="isRecording"
-      v-on:click="stopRecording"
-      class="button is-primary mr-2"
-    >
-      Stop
-    </button>
-    <button
-      v-if="isRecording"
-      v-on:click="cancelRecording"
-      class="button is-danger"
-    >
-      Cancel
-    </button>
-    <span v-if="isRecording" class="icon is-medium">
-      <span class="recording-indicator"></span>
-    </span>
+      class="button button-pill button-xxl button-disabled"
+      disabled>Drop</button>
+    </div>
   </div>
 </template>
 
 <script>
+import Notification from './Notification.vue';
+
 export default {
   name: 'DropAdder',
+  components: {
+    Notification,
+  },
 
   data: () => ({
     isRecording: false,
@@ -67,6 +77,7 @@ export default {
       };
 
       this.isRecording = true;
+      this.$refs.recordingNotification.show();
     },
     stopRecording() {
       this.audio.suspend();
@@ -78,14 +89,11 @@ export default {
         });
 
         const data = new FormData();
-        // TODO username.value
         data.append('username', localStorage.getItem('name') || 'anonymous');
         data.append(
           'file',
           new File([blob], 'upload.ogg', { type: blob.type }),
         );
-
-        console.log('data');
 
         fetch('/drop', {
           method: 'POST',
@@ -95,6 +103,7 @@ export default {
           .then((result) => {
             console.log(result);
             document.location.replace('/');
+            this.$refs.savedNotification.show();
           })
           .catch((error) => {
             console.error('Error:', error);
@@ -115,21 +124,8 @@ export default {
 
       this.recordingData = [];
       this.isRecording = false;
+      this.$refs.discardedNotification.show();
     },
   },
 };
 </script>
-
-<style scoped>
-  #controls {
-    margin: auto;
-  }
-  .recording-indicator {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
-  }
-  .recording-indicator::before {
-    content: '🔴';
-  }
-</style>

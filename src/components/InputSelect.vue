@@ -1,11 +1,11 @@
 <template>
-  <div class="select mr-2">
+  <Notification ref="successNotification">Selection saved</Notification>
+  <div class="toolbar-micselect select">
     <select v-model="device">
       <option v-for="device in devices" v-bind:key="device.deviceId" v-bind:value="device.deviceId">
         {{device.label}}
       </option>
     </select>
-    <Notification ref="successNotification">Selection saved</Notification>
   </div>
 </template>
 
@@ -41,10 +41,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-  .select {
-    margin: auto;
-    max-width: 15rem;
-  }
-</style>
